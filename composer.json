@@ -4,6 +4,7 @@
     "keywords": ["meilisearch", "laravel", "search", "scout"],
     "type": "laravel-package",
     "license": "MIT",
+    "version": "1.0.0-qibri",
     "authors": [
         {
             "name": "Max Shaian",
