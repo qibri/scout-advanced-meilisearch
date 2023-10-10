@@ -26,7 +26,9 @@ class ScoutAdvancedMeilisearchServiceProvider extends ServiceProvider
 
         resolve(EngineManager::class)->extend('meilisearch_advanced', function () {
             return new MeiliSearchExtendedEngine(
-                app(Client::class),
+                new Client(
+                    config('scout.meilisearch.host'), config('scout.meilisearch.key')
+                ),
                 config('scout.soft_delete', false)
             );
         });
