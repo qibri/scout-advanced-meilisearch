@@ -3,11 +3,11 @@
 namespace Omure\ScoutAdvancedMeilisearch\Engines;
 
 use Laravel\Scout\Builder as ScoutBuilder;
-use Laravel\Scout\Engines\MeiliSearchEngine;
+use Laravel\Scout\Engines\MeilisearchEngine;
 use Omure\ScoutAdvancedMeilisearch\Builder;
 use Omure\ScoutAdvancedMeilisearch\BuilderWhere;
 
-class MeiliSearchExtendedEngine extends MeiliSearchEngine
+class MeiliSearchExtendedEngine extends MeilisearchEngine
 {
     public function filters(ScoutBuilder $builder): string
     {
