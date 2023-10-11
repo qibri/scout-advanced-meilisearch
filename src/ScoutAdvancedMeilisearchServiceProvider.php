@@ -13,6 +13,10 @@ class ScoutAdvancedMeilisearchServiceProvider extends ServiceProvider
 {
     public function register()
     {
+        if (config('scout.driver') !== 'meilisearch_advanced') {
+            return;
+        }
+
         $this->app->bind('meiliSearch', function () {
             return new MeiliSearchService(app()->make(Client::class));
         });
@@ -20,6 +24,10 @@ class ScoutAdvancedMeilisearchServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        if (config('scout.driver') !== 'meilisearch_advanced') {
+            return;
+        }
+
         resolve(EngineManager::class)->extend('collection_advanced', function () {
             return new CollectionMeiliSearchTestEngine();
         });
