@@ -17,6 +17,8 @@ class Builder extends LaravelScoutBuilder
         '>=',
         '<',
         '<=',
+        'IN',
+        'NOT IN'
     ];
 
     public function where(mixed $field, $value = null, $valueWithOperator = null): static
@@ -54,44 +56,39 @@ class Builder extends LaravelScoutBuilder
         return $this;
     }
 
-    public function whereIn($field, array $values): static
+    private function _whereIn($field, array $values, bool $not = false, string $connector  = 'AND'): static
     {
-        $this->where(function (Builder $query) use ($field, $values) {
-            foreach ($values as $value) {
-                $query->orWhere($field, $value);
-            }
-        });
+
+        $operator = ($not ? 'NOT ' : '') . 'IN';
+        $this->buildWhere($field, $operator, $values, $connector);
+
+        return $this;
+    }
+
+    public function whereIn($field, array $values) :static
+    {
+        $this->_whereIn($field, $values);
 
         return $this;
     }
 
     public function orWhereIn($field, array $values): static
     {
-        $this->orWhere(function (Builder $query) use ($field, $values) {
-            foreach ($values as $value) {
-                $query->orWhere($field, $value);
-            }
-        });
+        $this->_whereIn($field, $values, false, 'OR');
 
         return $this;
     }
 
     public function whereNotIn($field, array $values): static
     {
-        foreach ($values as $value) {
-            $this->where($field, '!=', $value);
-        }
+        $this->_whereIn($field, $values, true);
 
         return $this;
     }
 
     public function orWhereNotIn($field, array $values): static
     {
-        $this->orWhere(function (Builder $query) use ($field, $values) {
-            foreach ($values as $value) {
-                $this->where($field, '!=', $value);
-            }
-        });
+        $this->_whereIn($field, $values, true, 'OR');
 
         return $this;
     }

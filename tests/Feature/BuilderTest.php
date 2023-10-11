@@ -50,7 +50,7 @@ class BuilderTest extends TestCase
         $builder = $this->partialMock(Builder::class);
 
         $this->expectException(BuilderException::class);
-        $this->expectExceptionMessage('Operator =< is not allowed. Allowed operators: =,!=,>,>=,<,<=.');
+        $this->expectExceptionMessage('Operator =< is not allowed. Allowed operators: =,!=,>,>=,<,<=,IN,NOT IN.');
 
         $builder->where('field_a', '=<', 'value_a');
     }
@@ -95,7 +95,7 @@ class BuilderTest extends TestCase
         $builder = $this->partialMock(Builder::class);
 
         $this->expectException(BuilderException::class);
-        $this->expectExceptionMessage('Operator =< is not allowed. Allowed operators: =,!=,>,>=,<,<=.');
+        $this->expectExceptionMessage('Operator =< is not allowed. Allowed operators: =,!=,>,>=,<,<=,IN,NOT IN.');
 
         $builder->orWhere('field_a', '=<', 'value_a');
     }
@@ -111,7 +111,11 @@ class BuilderTest extends TestCase
             $query
                 ->where('field_a', 1)
                 ->where('field_b', 2)
-                ->whereIn('field_c', [3, 4]);
+                ->orWhereIn('field_c', [3, 4])
+                ->where(function (Builder $query) {
+                    $query
+                        ->orWhere('field_d', 5);
+                });
         });
 
         $this->assertCount(1, $builder->wheres);
@@ -122,12 +126,11 @@ class BuilderTest extends TestCase
         $this->assertEquals(new BuilderWhere('field_a', '=', 1, 'AND'), $wheres[0]);
         $this->assertEquals(new BuilderWhere('field_b', '=', 2, 'AND'), $wheres[1]);
 
-        $this->assertInstanceOf(Builder::class, $wheres[2]->field);
+        $this->assertEquals(new BuilderWhere('field_c', 'IN', '[3,4]', 'OR'), $wheres[2]);
 
-        $wheresIn = $wheres[2]->field->wheres;
+        $this->assertInstanceOf(Builder::class, $wheres[3]->field);
+        $this->assertEquals(new BuilderWhere('field_d', '=', 5, 'OR'), $wheres[3]->field->wheres[0]);
 
-        $this->assertEquals(new BuilderWhere('field_c', '=', 3, 'OR'), $wheresIn[0]);
-        $this->assertEquals(new BuilderWhere('field_c', '=', 4, 'OR'), $wheresIn[1]);
     }
 
     public function test_where_between()
@@ -176,14 +179,10 @@ class BuilderTest extends TestCase
 
         $builder->whereIn('field_a', [1, 2, 3]);
 
-        $nestedWheres = $builder->wheres[0]->field->wheres;
 
         $this->assertCount(1, $builder->wheres);
         $this->assertEquals('AND', $builder->wheres[0]->connector);
-        $this->assertCount(3, $nestedWheres);
-        $this->assertEquals(new BuilderWhere('field_a', '=', 1, 'OR'), $nestedWheres[0]);
-        $this->assertEquals(new BuilderWhere('field_a', '=', 2, 'OR'), $nestedWheres[1]);
-        $this->assertEquals(new BuilderWhere('field_a', '=', 3, 'OR'), $nestedWheres[2]);
+        $this->assertEquals(new BuilderWhere('field_a', 'IN', "[1,2,3]", 'AND'), $builder->wheres[0]);
     }
 
     public function test_where_not_in()
@@ -192,12 +191,10 @@ class BuilderTest extends TestCase
         $builder = $this->partialMock(Builder::class);
 
         $builder->whereNotIn('field_a', [1]);
-        $builder->whereNotIn('field_b', [2, 3, 4]);
+        $builder->whereNotIn('field_b', [2, 3, 'a']);
 
-        $this->assertCount(4, $builder->wheres);
-        $this->assertEquals(new BuilderWhere('field_a', '!=', 1, 'AND'), $builder->wheres[0]);
-        $this->assertEquals(new BuilderWhere('field_b', '!=', 2, 'AND'), $builder->wheres[1]);
-        $this->assertEquals(new BuilderWhere('field_b', '!=', 3, 'AND'), $builder->wheres[2]);
-        $this->assertEquals(new BuilderWhere('field_b', '!=', 4, 'AND'), $builder->wheres[3]);
+        $this->assertCount(2, $builder->wheres);
+        $this->assertEquals(new BuilderWhere('field_a', 'NOT IN', '[1]', 'AND'), $builder->wheres[0]);
+        $this->assertEquals(new BuilderWhere('field_b', 'NOT IN', '[2,3,"a"]', 'AND'), $builder->wheres[1]);
     }
 }

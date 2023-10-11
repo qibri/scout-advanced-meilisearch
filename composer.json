@@ -4,7 +4,7 @@
     "keywords": ["meilisearch", "laravel", "search", "scout"],
     "type": "laravel-package",
     "license": "MIT",
-    "version": "1.0.0-qibri",
+    "version": "1.1.0",
     "authors": [
         {
             "name": "Max Shaian",
@@ -41,5 +41,5 @@
                 "MeiliSearch": "Omure\\ScoutAdvancedMeilisearch\\Facades\\MeiliSearch"
             }
         }
-    }
+        }
 }

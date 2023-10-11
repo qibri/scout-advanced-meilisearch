@@ -26,12 +26,41 @@ class MeilisearchDriverTest extends TestCase
 
         $this->assertEquals('field_a != 25 OR field_b = 15', $engine->filters($builder));
 
-        $builder->where(function(Builder $query) {
+        $builder->where(function (Builder $query) {
             $query->where('field_c', '>=', 14)
                 ->orWhere('field_d', '!=', 34);
         });
 
         $this->assertEquals('field_a != 25 OR field_b = 15 AND (field_c >= 14 OR field_d != 34)', $engine->filters($builder));
+    }
+
+    public function test_filters_nested_ok()
+    {
+        /** @var Model $mockModel */
+        $mockModel = $this->mock(Model::class);
+
+        $builder = new Builder($mockModel, 'query');
+
+        /** @var MeiliSearchExtendedEngine $engine */
+        $engine = $this->partialMock(MeiliSearchExtendedEngine::class);
+
+        $this->assertEquals('', $engine->filters($builder));
+
+        $builder->where(function (Builder $query) {
+            $query
+                ->where(function (Builder $query) {
+                    $query
+                        ->where('field_a', 1)
+                        ->where('field_b', 2);
+                })
+                ->orWhereIn('field_c', ['a', 4])
+                ->where(function (Builder $query) {
+                    $query
+                        ->orWhere('field_d', 5);
+                });
+        });
+
+        $this->assertEquals('((field_a = 1 AND field_b = 2) OR field_c IN ["a",4] AND (field_d = 5))', $engine->filters($builder));
     }
 
     public function test_replace_nulls_in_query()
@@ -80,4 +109,5 @@ class MeilisearchDriverTest extends TestCase
             ],
         ], $result);
     }
+
 }

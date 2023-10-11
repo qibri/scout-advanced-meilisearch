@@ -50,7 +50,7 @@ class MeiliSearchExtendedEngine extends MeilisearchEngine
             );
         })->filter()->values()->all();
 
-        if (! empty($objects)) {
+        if (!empty($objects)) {
             $index->addDocuments($objects, $models->first()->getKeyName());
         }
     }
@@ -70,18 +70,47 @@ class MeiliSearchExtendedEngine extends MeilisearchEngine
         })->toArray();
     }
 
-    private function formatToString(BuilderWhere $where): string
+    public function formatToString(BuilderWhere $where): string
     {
         $value = $where->value;
 
+
+        if (is_array($value)) {
+            $values = $value;
+            $value = "[";
+
+            $first = true;
+            foreach ($values as $current) {
+                if (!$first) {
+                    $value .= ',';
+                }
+
+                $value .= $this->formatValue($current);
+
+                $first = false;
+            }
+
+            $value .= "]";
+
+        } else {
+            $value = $this->formatValue($value);
+        }
+
+        return "$where->connector $where->field $where->operator $value";
+    }
+
+    private function formatValue(mixed $value): string
+    {
         if (is_bool($value)) {
             $value = $value ? 'true' : 'false';
+
         } elseif (is_null($value)) {
             $value = '"null"';
+
         } elseif (!is_numeric($value)) {
             $value = '"' . $value . '"';
         }
 
-        return "$where->connector $where->field $where->operator $value";
+        return $value;
     }
 }
