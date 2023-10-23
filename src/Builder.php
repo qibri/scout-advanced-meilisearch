@@ -116,7 +116,7 @@ class Builder extends LaravelScoutBuilder
             return;
         }
 
-        $appliedOperator = $valueWithOperator ? $value : '=';
+        $appliedOperator = ($valueWithOperator !== null) ? $value : '=';
 
         if (!in_array($appliedOperator, $this->allowedOperators)) {
             $allowedOperatorsList = implode(',', $this->allowedOperators);
@@ -125,7 +125,7 @@ class Builder extends LaravelScoutBuilder
             );
         }
 
-        $appliedValue = $valueWithOperator ?: $value;
+        $appliedValue = ($valueWithOperator !== null) ? $valueWithOperator: $value;
 
         $this->wheres[] = new BuilderWhere(
             $field,
